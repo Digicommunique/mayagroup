@@ -24,15 +24,24 @@ export default function Login({ onLogin }: LoginProps) {
         body: JSON.stringify({ staffId, password })
       });
 
-      const data = await res.json();
+      let data;
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        console.error("Non-JSON response:", text);
+        throw new Error(`Server error: ${res.status} ${res.statusText}`);
+      }
 
       if (res.ok) {
         onLogin(data.staff);
       } else {
         setError(data.details || data.message || data.error || 'Invalid credentials');
       }
-    } catch (err) {
-      setError('Connection error. Please try again.');
+    } catch (err: any) {
+      console.error("Login fetch error:", err);
+      setError(err.message === 'Failed to fetch' ? 'Cannot connect to server. Please check your internet.' : (err.message || 'Connection error. Please try again.'));
     } finally {
       setIsLoading(false);
     }
