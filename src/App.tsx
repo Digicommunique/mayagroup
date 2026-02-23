@@ -45,6 +45,11 @@ export default function App() {
   const handleLogin = (userData: any) => {
     setUser(userData);
     localStorage.setItem('dc_user', JSON.stringify(userData));
+    if (userData.role === 'accountant') {
+      setActiveTab('collection');
+    } else {
+      setActiveTab('dashboard');
+    }
   };
 
   const handleLogout = () => {
@@ -56,7 +61,7 @@ export default function App() {
     return <Login onLogin={handleLogin} />;
   }
 
-  const menuItems = [
+  const allMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'students', label: 'Student Directory', icon: Users },
     { id: 'collection', label: 'Record Payment', icon: CreditCard },
@@ -65,15 +70,35 @@ export default function App() {
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
 
+  const menuItems = allMenuItems.filter(item => {
+    if (user.role === 'accountant') {
+      return ['dashboard', 'collection'].includes(item.id);
+    }
+    if (user.role === 'staff') {
+      return ['dashboard', 'students', 'collection', 'reports'].includes(item.id);
+    }
+    return true; // Admin sees everything
+  });
+
   const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard': return <Dashboard setActiveTab={setActiveTab} />;
+    // Role-based access control for rendering
+    const isAllowed = (tabId: string) => {
+      if (user.role === 'admin') return true;
+      if (user.role === 'accountant') return ['dashboard', 'collection'].includes(tabId);
+      if (user.role === 'staff') return ['dashboard', 'students', 'collection', 'reports'].includes(tabId);
+      return false;
+    };
+
+    const currentTab = isAllowed(activeTab) ? activeTab : (user.role === 'accountant' ? 'collection' : 'dashboard');
+
+    switch (currentTab) {
+      case 'dashboard': return <Dashboard setActiveTab={setActiveTab} user={user} />;
       case 'students': return <StudentDirectory />;
       case 'collection': return <FeeCollection />;
       case 'plans': return <FeePlans />;
       case 'reports': return <Reports />;
       case 'settings': return <Settings />;
-      default: return <Dashboard setActiveTab={setActiveTab} />;
+      default: return <Dashboard setActiveTab={setActiveTab} user={user} />;
     }
   };
 

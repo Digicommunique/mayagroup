@@ -69,6 +69,25 @@ apiRouter.get("/health", (req, res) => {
     }
   });
 
+  apiRouter.get("/debug/db", async (req, res) => {
+    try {
+      const { data, error } = await supabase.from("staff").select("count", { count: 'exact', head: true });
+      if (error) {
+        return res.status(500).json({ 
+          error: "Database connection failed", 
+          details: error.message,
+          hint: "Make sure the 'staff' table exists in your Supabase project."
+        });
+      }
+      res.json({ 
+        status: "connected", 
+        staffCount: data 
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: "Unexpected database error", message: e.message });
+    }
+  });
+
   // Settings & Setup
   apiRouter.get("/settings", async (req, res) => {
     try {
@@ -134,8 +153,8 @@ apiRouter.get("/health", (req, res) => {
   });
 
   apiRouter.post("/settings/staff", async (req, res) => {
-    const { staff_id, name, password } = req.body;
-    const { error } = await supabase.from("staff").insert({ staff_id, name, password });
+    const { staff_id, name, password, role } = req.body;
+    const { error } = await supabase.from("staff").insert({ staff_id, name, password, role: role || 'staff' });
     if (error) return res.status(400).json({ error: "Staff ID already exists" });
     res.json({ success: true });
   });
@@ -195,8 +214,8 @@ apiRouter.get("/health", (req, res) => {
   });
 
   apiRouter.put("/settings/staff/:id", async (req, res) => {
-    const { staff_id, name, password } = req.body;
-    const { error } = await supabase.from("staff").update({ staff_id, name, password }).eq("id", req.params.id);
+    const { staff_id, name, password, role } = req.body;
+    const { error } = await supabase.from("staff").update({ staff_id, name, password, role }).eq("id", req.params.id);
     if (error) return res.status(400).json({ error: "Staff ID already exists or update failed" });
     res.json({ success: true });
   });

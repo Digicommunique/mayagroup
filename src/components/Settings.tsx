@@ -35,7 +35,7 @@ export default function Settings() {
     semester: '',
     session: '',
     branch: '',
-    staff: { staff_id: '', name: '', password: '' }
+    staff: { staff_id: '', name: '', password: '', role: 'staff' }
   });
 
   const [editingStaffId, setEditingStaffId] = useState<number | null>(null);
@@ -100,7 +100,7 @@ export default function Settings() {
     }).then(res => {
       if (res.ok) {
         fetchData();
-        setNewItems(prev => ({ ...prev, staff: { staff_id: '', name: '', password: '' } }));
+        setNewItems(prev => ({ ...prev, staff: { staff_id: '', name: '', password: '', role: 'staff' } }));
         setEditingStaffId(null);
       } else {
         alert('Staff ID already exists or operation failed');
@@ -124,7 +124,7 @@ export default function Settings() {
     setEditingStaffId(s.id);
     setNewItems(prev => ({
       ...prev,
-      staff: { staff_id: s.staff_id, name: s.name, password: s.password || '' }
+      staff: { staff_id: s.staff_id, name: s.name, password: s.password || '', role: s.role || 'staff' }
     }));
   };
 
@@ -132,7 +132,7 @@ export default function Settings() {
     setEditingStaffId(null);
     setNewItems(prev => ({
       ...prev,
-      staff: { staff_id: '', name: '', password: '' }
+      staff: { staff_id: '', name: '', password: '', role: 'staff' }
     }));
   };
 
@@ -384,7 +384,7 @@ export default function Settings() {
                   </button>
                 )}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <input 
                   type="text"
                   value={newItems.staff.staff_id}
@@ -406,6 +406,15 @@ export default function Settings() {
                   className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
                   placeholder="Password"
                 />
+                <select
+                  value={newItems.staff.role}
+                  onChange={e => setNewItems({...newItems, staff: {...newItems.staff, role: e.target.value}})}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                >
+                  <option value="staff">Staff</option>
+                  <option value="accountant">Accountant</option>
+                  <option value="admin">Admin</option>
+                </select>
                 <button 
                   onClick={addStaff}
                   className="bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-colors"
@@ -436,7 +445,9 @@ export default function Settings() {
                         <td className="py-4 px-4">
                           <span className={cn(
                             "px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                            s.role === 'admin' ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-600"
+                            s.role === 'admin' ? "bg-red-50 text-red-600" : 
+                            s.role === 'accountant' ? "bg-emerald-50 text-emerald-600" :
+                            "bg-blue-50 text-blue-600"
                           )}>
                             {s.role}
                           </span>

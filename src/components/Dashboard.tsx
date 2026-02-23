@@ -12,7 +12,7 @@ import { motion } from 'motion/react';
 import { format } from 'date-fns';
 import { cn } from '../lib/utils';
 
-export default function Dashboard({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
+export default function Dashboard({ setActiveTab, user }: { setActiveTab: (tab: string) => void, user: any }) {
   const [summary, setSummary] = useState<any>(null);
 
   useEffect(() => {
@@ -47,14 +47,14 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (tab: string
       trend: '+4',
       trendUp: true
     },
-    { 
+    ...(user.role !== 'accountant' ? [{ 
       label: 'Active Plans', 
       value: (summary.planCount || 0).toString(), 
       icon: CreditCard, 
       color: 'bg-violet-500',
       trend: 'Stable',
       trendUp: true
-    },
+    }] : []),
   ];
 
   return (
@@ -97,12 +97,14 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (tab: string
               <Clock size={18} className="text-slate-400" />
               Recent Collections
             </h3>
-            <button 
-              onClick={() => setActiveTab('reports')}
-              className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
-            >
-              View All <ChevronRight size={14} />
-            </button>
+            {user?.role !== 'accountant' && (
+              <button 
+                onClick={() => setActiveTab('reports')}
+                className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+              >
+                View All <ChevronRight size={14} />
+              </button>
+            )}
           </div>
           <div className="divide-y divide-slate-50">
             {(summary.recentTransactions || []).map((tx: any) => (
@@ -146,29 +148,31 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (tab: string
             <CreditCard className="absolute -right-4 -bottom-4 text-emerald-500/20 w-32 h-32 rotate-12" />
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-            <h3 className="font-bold text-slate-800 mb-4">System Overview</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
-                    <Users size={16} />
+          {user.role !== 'accountant' && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+              <h3 className="font-bold text-slate-800 mb-4">System Overview</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                      <Users size={16} />
+                    </div>
+                    <span className="text-sm font-medium text-slate-600">Active Students</span>
                   </div>
-                  <span className="text-sm font-medium text-slate-600">Active Students</span>
+                  <span className="font-bold text-slate-900">{summary.studentCount}</span>
                 </div>
-                <span className="font-bold text-slate-900">{summary.studentCount}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center">
-                    <CreditCard size={16} />
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center">
+                      <CreditCard size={16} />
+                    </div>
+                    <span className="text-sm font-medium text-slate-600">Fee Structures</span>
                   </div>
-                  <span className="text-sm font-medium text-slate-600">Fee Structures</span>
+                  <span className="font-bold text-slate-900">{summary.planCount}</span>
                 </div>
-                <span className="font-bold text-slate-900">{summary.planCount}</span>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
