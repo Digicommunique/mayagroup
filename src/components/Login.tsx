@@ -29,7 +29,7 @@ export default function Login({ onLogin }: LoginProps) {
       if (res.ok) {
         onLogin(data.staff);
       } else {
-        setError(data.error || 'Invalid credentials');
+        setError(data.details || data.message || data.error || 'Invalid credentials');
       }
     } catch (err) {
       setError('Connection error. Please try again.');

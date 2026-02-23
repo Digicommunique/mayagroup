@@ -13,14 +13,33 @@ const __dirname = path.dirname(__filename);
 const supabaseUrl = process.env.SUPABASE_URL || "";
 const supabaseKey = process.env.SUPABASE_KEY || "";
 
+let supabase: any;
+
 if (!supabaseUrl || !supabaseKey) {
   console.error("CRITICAL: SUPABASE_URL or SUPABASE_KEY is missing from environment variables.");
+} else {
+  try {
+    supabase = createClient(supabaseUrl, supabaseKey);
+  } catch (e) {
+    console.error("Failed to initialize Supabase client:", e);
+  }
 }
-
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
+
+// Middleware to check supabase
+app.use((req, res, next) => {
+  if (!supabase && req.path.startsWith('/api/') && req.path !== '/api/health') {
+    return res.status(500).json({ error: "Supabase is not configured. Please check environment variables." });
+  }
+  next();
+});
+
+// Health check
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", supabaseConfigured: !!(supabaseUrl && supabaseKey) });
+});
 
 // API Routes
 
@@ -97,22 +116,29 @@ app.post("/api/settings/staff", async (req, res) => {
 
 app.post("/api/login", async (req, res) => {
   const { staffId, password } = req.body;
+  console.log(`Login attempt for: ${staffId}`);
   
-  // Try to find the user
-  let { data: staff, error } = await supabase
-    .from("staff")
-    .select("id, staff_id, name, role")
-    .eq("staff_id", staffId)
-    .eq("password", password)
-    .maybeSingle(); // Use maybeSingle to avoid error if not found
-  
-  // If no staff exists at all in the database, create the default admin
-  if (!staff) {
-    try {
+  try {
+    // Try to find the user
+    let { data: staff, error } = await supabase
+      .from("staff")
+      .select("id, staff_id, name, role")
+      .eq("staff_id", staffId)
+      .eq("password", password)
+      .maybeSingle();
+    
+    if (error) {
+      console.error("Supabase Login Query Error:", error);
+      return res.status(500).json({ error: "Database connection error", details: error.message });
+    }
+    
+    // If no staff exists at all in the database, create the default admin
+    if (!staff) {
       const { count, error: countError } = await supabase.from("staff").select("*", { count: 'exact', head: true });
-      if (countError) console.error("Supabase Count Error:", countError);
       
-      if (count === 0 && staffId === 'admin' && password === '12345') {
+      if (countError) {
+        console.error("Supabase Count Error:", countError);
+      } else if (count === 0 && staffId === 'admin' && password === '12345') {
         console.log("No staff found. Creating default admin...");
         const { data: newAdmin, error: createError } = await supabase
           .from("staff")
@@ -120,21 +146,25 @@ app.post("/api/login", async (req, res) => {
           .select("id, staff_id, name, role")
           .single();
         
-        if (createError) console.error("Supabase Create Admin Error:", createError);
+        if (createError) {
+          console.error("Supabase Create Admin Error:", createError);
+          return res.status(500).json({ error: "Failed to create default admin", details: createError.message });
+        }
         
         if (newAdmin) {
           return res.json({ success: true, staff: newAdmin });
         }
       }
-    } catch (e) {
-      console.error("Auto-seed error:", e);
     }
-  }
-  
-  if (staff) {
-    res.json({ success: true, staff });
-  } else {
-    res.status(401).json({ error: "Invalid Staff ID or Password" });
+    
+    if (staff) {
+      res.json({ success: true, staff });
+    } else {
+      res.status(401).json({ error: "Invalid Staff ID or Password" });
+    }
+  } catch (err: any) {
+    console.error("Unexpected Login Error:", err);
+    res.status(500).json({ error: "Internal server error", message: err.message });
   }
 });
 
