@@ -22,7 +22,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "server.ts"
+      "dest": "/index.html"
     }
   ]
 }

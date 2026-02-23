@@ -16,9 +16,16 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (tab: string
   const [summary, setSummary] = useState<any>(null);
 
   useEffect(() => {
-    fetch('/api/reports/summary')
+    fetch('/api/summary')
       .then(res => res.json())
-      .then(data => setSummary(data));
+      .then(data => {
+        if (data && !data.error) {
+          setSummary(data);
+        } else {
+          console.error("Failed to fetch summary:", data?.error);
+        }
+      })
+      .catch(err => console.error("Summary fetch error:", err));
   }, []);
 
   if (!summary) return <div className="flex items-center justify-center h-64">Loading...</div>;
@@ -26,7 +33,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (tab: string
   const stats = [
     { 
       label: 'Total Collections', 
-      value: `₹${summary.totalCollections.toLocaleString()}`, 
+      value: `₹${(summary.totalCollections || 0).toLocaleString()}`, 
       icon: TrendingUp, 
       color: 'bg-emerald-500',
       trend: '+12.5%',
@@ -34,7 +41,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (tab: string
     },
     { 
       label: 'Total Students', 
-      value: summary.studentCount.toString(), 
+      value: (summary.studentCount || 0).toString(), 
       icon: Users, 
       color: 'bg-blue-500',
       trend: '+4',
@@ -42,7 +49,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (tab: string
     },
     { 
       label: 'Active Plans', 
-      value: summary.planCount.toString(), 
+      value: (summary.planCount || 0).toString(), 
       icon: CreditCard, 
       color: 'bg-violet-500',
       trend: 'Stable',
@@ -98,7 +105,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (tab: string
             </button>
           </div>
           <div className="divide-y divide-slate-50">
-            {summary.recentTransactions.map((tx: any) => (
+            {(summary.recentTransactions || []).map((tx: any) => (
               <div key={tx.id} className="p-4 hover:bg-slate-50 transition-colors flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
@@ -110,7 +117,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab: (tab: string
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-slate-900">₹{tx.amount.toLocaleString()}</p>
+                  <p className="font-bold text-slate-900">₹{(tx.amount || 0).toLocaleString()}</p>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{tx.payment_mode}</p>
                 </div>
               </div>

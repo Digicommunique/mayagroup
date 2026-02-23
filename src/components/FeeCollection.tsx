@@ -38,8 +38,13 @@ export default function FeeCollection() {
   const receiptRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch('/api/students').then(res => res.json()).then(setStudents);
-    fetch('/api/settings').then(res => res.json()).then(data => setSettings(data.settings));
+    fetch('/api/students')
+      .then(res => res.json())
+      .then(data => Array.isArray(data) ? setStudents(data) : setStudents([]));
+    
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => setSettings(data.settings));
   }, []);
 
   const handleSavePayment = async (e: React.FormEvent) => {
@@ -94,7 +99,7 @@ export default function FeeCollection() {
     }, 500);
   };
 
-  const filteredStudents = students.filter(s => 
+  const filteredStudents = (students || []).filter(s => 
     s.name.toLowerCase().includes(search.toLowerCase()) || 
     s.roll_no.toLowerCase().includes(search.toLowerCase())
   );

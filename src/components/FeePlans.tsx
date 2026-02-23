@@ -29,7 +29,11 @@ export default function FeePlans() {
   const fetchPlans = () => {
     fetch('/api/fee-plans')
       .then(res => res.json())
-      .then(setPlans);
+      .then(data => Array.isArray(data) ? setPlans(data) : setPlans([]))
+      .catch(err => {
+        console.error("Failed to fetch plans:", err);
+        setPlans([]);
+      });
   };
 
   useEffect(() => {
@@ -85,7 +89,7 @@ export default function FeePlans() {
     setNewPlan({
       name: plan.name,
       frequency: plan.frequency,
-      heads: plan.heads.map(h => ({ name: h.name, amount: h.amount.toString() }))
+      heads: plan.heads.map(h => ({ name: h.name, amount: (h.amount || 0).toString() }))
     });
     setIsModalOpen(true);
   };
@@ -115,7 +119,7 @@ export default function FeePlans() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {plans.map(plan => (
+        {(plans || []).map(plan => (
           <motion.div 
             layout
             key={plan.id}
@@ -131,7 +135,7 @@ export default function FeePlans() {
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Package</p>
-                  <p className="text-2xl font-black text-emerald-600">₹{plan.total_amount.toLocaleString()}</p>
+                  <p className="text-2xl font-black text-emerald-600">₹{(plan.total_amount || 0).toLocaleString()}</p>
                 </div>
               </div>
 
@@ -143,7 +147,7 @@ export default function FeePlans() {
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                       <span className="text-slate-600 font-medium">{head.name}</span>
                     </div>
-                    <span className="text-slate-900 font-bold">₹{head.amount.toLocaleString()}</span>
+                    <span className="text-slate-900 font-bold">₹{(head.amount || 0).toLocaleString()}</span>
                   </div>
                 ))}
               </div>
@@ -280,7 +284,7 @@ export default function FeePlans() {
               <div className="p-6 bg-slate-900 flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Estimated Total</p>
-                  <p className="text-3xl font-black text-emerald-400">₹{estimatedTotal.toLocaleString()}</p>
+                  <p className="text-3xl font-black text-emerald-400">₹{(estimatedTotal || 0).toLocaleString()}</p>
                 </div>
                 <button 
                   onClick={savePlan}

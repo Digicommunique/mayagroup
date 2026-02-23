@@ -29,9 +29,17 @@ export default function Reports() {
   const [printingTx, setPrintingTx] = useState<Transaction | null>(null);
 
   useEffect(() => {
-    fetch('/api/transactions').then(res => res.json()).then(setTransactions);
-    fetch('/api/settings').then(res => res.json()).then(data => setSettings(data.settings));
-    fetch('/api/reports/ledger').then(res => res.json()).then(setLedger);
+    fetch('/api/transactions')
+      .then(res => res.json())
+      .then(data => Array.isArray(data) ? setTransactions(data) : setTransactions([]));
+    
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => setSettings(data.settings));
+      
+    fetch('/api/ledger')
+      .then(res => res.json())
+      .then(data => Array.isArray(data) ? setLedger(data) : setLedger([]));
   }, []);
 
   const handlePrint = (tx: Transaction) => {
@@ -45,7 +53,7 @@ export default function Reports() {
     }, 500);
   };
 
-  const filteredTransactions = transactions.filter(tx => {
+  const filteredTransactions = (transactions || []).filter(tx => {
     const matchesSearch = 
       tx.student_name?.toLowerCase().includes(search.toLowerCase()) || 
       tx.transaction_id?.toLowerCase().includes(search.toLowerCase()) ||
@@ -58,7 +66,7 @@ export default function Reports() {
     return matchesSearch && matchesFrom && matchesTo;
   });
 
-  const filteredLedger = ledger.filter(item => 
+  const filteredLedger = (ledger || []).filter(item => 
     item.name.toLowerCase().includes(search.toLowerCase()) || 
     item.roll_no.toLowerCase().includes(search.toLowerCase())
   );
@@ -195,7 +203,7 @@ export default function Reports() {
           </div>
           <div>
             <h4 className="text-slate-400 text-xs font-bold uppercase tracking-widest">Total Collection in Period</h4>
-            <p className="text-4xl font-black mt-1">₹{totalAmount.toLocaleString()}</p>
+            <p className="text-4xl font-black mt-1">₹{(totalAmount || 0).toLocaleString()}</p>
           </div>
         </div>
         <div className="hidden md:block text-right">
@@ -233,7 +241,7 @@ export default function Reports() {
                       <p className="text-sm font-mono text-slate-600">{tx.transaction_id || 'CASH_PAYMENT'}</p>
                     </td>
                     <td className="py-4 px-6 text-right">
-                      <p className="text-lg font-black text-emerald-700">₹{tx.amount.toLocaleString()}</p>
+                      <p className="text-lg font-black text-emerald-700">₹{(tx.amount || 0).toLocaleString()}</p>
                     </td>
                     <td className="py-4 px-6 text-right print:hidden">
                       <button 
@@ -289,7 +297,7 @@ export default function Reports() {
                           "text-sm font-black",
                           balance > 0 ? "text-red-600" : "text-emerald-600"
                         )}>
-                          ₹{balance.toLocaleString()}
+                          ₹{(balance || 0).toLocaleString()}
                         </p>
                       </td>
                     </tr>

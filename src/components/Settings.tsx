@@ -278,7 +278,7 @@ export default function Settings() {
                 </button>
               </div>
               <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
-                {data.semesters.map(s => (
+                {(data.semesters || []).map(s => (
                   <div key={s.id} className="p-3 bg-slate-50 rounded-lg text-sm font-medium text-slate-700 border border-slate-100 flex items-center justify-between group">
                     {s.name}
                     <button 
@@ -314,7 +314,7 @@ export default function Settings() {
                 </button>
               </div>
               <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
-                {data.sessions.map(s => (
+                {(data.sessions || []).map(s => (
                   <div key={s.id} className="p-3 bg-slate-50 rounded-lg text-sm font-medium text-slate-700 border border-slate-100 flex items-center justify-between group">
                     {s.name}
                     <button 
@@ -350,7 +350,7 @@ export default function Settings() {
                 </button>
               </div>
               <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
-                {data.branches.map(b => (
+                {(data.branches || []).map(b => (
                   <div key={b.id} className="p-3 bg-slate-50 rounded-lg text-sm font-medium text-slate-700 border border-slate-100 flex items-center justify-between group">
                     {b.name}
                     <button 
@@ -429,7 +429,7 @@ export default function Settings() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {data.staff.map(s => (
+                    {(data.staff || []).map(s => (
                       <tr key={s.id} className="hover:bg-slate-50 transition-colors">
                         <td className="py-4 px-4 text-sm font-bold text-slate-900">{s.staff_id}</td>
                         <td className="py-4 px-4 text-sm text-slate-600">{s.name}</td>

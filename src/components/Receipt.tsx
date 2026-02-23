@@ -61,7 +61,7 @@ export default function Receipt({ transaction, settings }: ReceiptProps) {
           <h4 className="text-sm font-bold text-slate-500">Total Amount Paid</h4>
           <p className="text-xs text-slate-400 mt-1 italic">Amount in words: {transaction.amount} Rupees Only</p>
         </div>
-        <p className="text-4xl font-black text-emerald-600">₹{transaction.amount.toLocaleString()}</p>
+        <p className="text-4xl font-black text-emerald-600">₹{(transaction.amount || 0).toLocaleString()}</p>
       </div>
 
       <div className="pt-12 flex items-center justify-between text-slate-400">

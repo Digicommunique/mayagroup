@@ -56,11 +56,18 @@ export default function StudentDirectory() {
       fetch('/api/fee-plans').then(res => res.json()),
       fetch('/api/settings').then(res => res.json())
     ]).then(([studentsData, plansData, settingsData]) => {
-      setStudents(studentsData);
-      setPlans(plansData);
-      setBranches(settingsData.branches);
-      setSemesters(settingsData.semesters);
-      setSessions(settingsData.sessions);
+      setStudents(Array.isArray(studentsData) ? studentsData : []);
+      setPlans(Array.isArray(plansData) ? plansData : []);
+      setBranches(settingsData?.branches || []);
+      setSemesters(settingsData?.semesters || []);
+      setSessions(settingsData?.sessions || []);
+    }).catch(err => {
+      console.error("fetchData error:", err);
+      setStudents([]);
+      setPlans([]);
+      setBranches([]);
+      setSemesters([]);
+      setSessions([]);
     });
   };
 
@@ -99,10 +106,10 @@ export default function StudentDirectory() {
       guardian_name: student.guardian_name,
       roll_no: student.roll_no,
       phone: student.phone,
-      plan_id: student.plan_id.toString(),
-      branch_id: student.branch_id.toString(),
-      semester_id: student.semester_id.toString(),
-      session_id: student.session_id.toString()
+      plan_id: (student.plan_id || '').toString(),
+      branch_id: (student.branch_id || '').toString(),
+      semester_id: (student.semester_id || '').toString(),
+      session_id: (student.session_id || '').toString()
     });
     setIsModalOpen(true);
   };
@@ -118,7 +125,7 @@ export default function StudentDirectory() {
     }
   };
 
-  const filteredStudents = students.filter(s => {
+  const filteredStudents = (students || []).filter(s => {
     const matchesSearch = 
       s.name.toLowerCase().includes(search.toLowerCase()) || 
       s.roll_no.toLowerCase().includes(search.toLowerCase()) ||
@@ -210,7 +217,7 @@ export default function StudentDirectory() {
           className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-emerald-500 bg-white min-w-[140px]"
         >
           <option value="all">All Programs</option>
-          {plans.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          {(plans || []).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
 
         <select 
@@ -219,7 +226,7 @@ export default function StudentDirectory() {
           className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-emerald-500 bg-white min-w-[140px]"
         >
           <option value="all">All Branches</option>
-          {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+          {(branches || []).map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
         </select>
 
         <select 
@@ -228,7 +235,7 @@ export default function StudentDirectory() {
           className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-emerald-500 bg-white min-w-[140px]"
         >
           <option value="all">All Semesters</option>
-          {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          {(semesters || []).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       </div>
 
@@ -377,7 +384,7 @@ export default function StudentDirectory() {
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all bg-white"
                     >
                       <option value="">Select Plan</option>
-                      {plans.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                      {(plans || []).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -389,7 +396,7 @@ export default function StudentDirectory() {
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all bg-white"
                     >
                       <option value="">Select Branch</option>
-                      {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                      {(branches || []).map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -401,7 +408,7 @@ export default function StudentDirectory() {
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all bg-white"
                     >
                       <option value="">Select Sem</option>
-                      {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      {(semesters || []).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -413,7 +420,7 @@ export default function StudentDirectory() {
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all bg-white"
                     >
                       <option value="">Select Session</option>
-                      {sessions.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      {(sessions || []).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
                   </div>
                   <div className="space-y-2">
