@@ -9,12 +9,15 @@ import {
   AlertCircle,
   X,
   ChevronDown,
-  ArrowRight
+  ArrowRight,
+  FileDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Student, Transaction, OrgSettings } from '../types';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 import Receipt from './Receipt';
 
@@ -93,10 +96,38 @@ export default function FeeCollection() {
   };
 
   const handlePrint = () => {
-    // Ensure the component is rendered before printing
-    setTimeout(() => {
-      window.print();
-    }, 500);
+    window.print();
+  };
+
+  const downloadPDF = async () => {
+    const element = document.getElementById('receipt-content');
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Receipt_${lastTx?.id || 'Fee'}.pdf`);
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+      alert('Failed to generate PDF. Please try printing instead.');
+    }
   };
 
   const filteredStudents = (students || []).filter(s => 
@@ -270,17 +301,24 @@ export default function FeeCollection() {
           <div className="flex flex-wrap items-center justify-center gap-4 print:hidden">
             <button 
               onClick={handlePrint}
-              className="flex items-center gap-2 px-8 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-lg"
+              className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-lg"
             >
               <Printer size={18} />
-              Print Receipt
+              Print
+            </button>
+            <button 
+              onClick={downloadPDF}
+              className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-lg"
+            >
+              <FileDown size={18} />
+              PDF
             </button>
             <button 
               onClick={shareWhatsApp}
-              className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
+              className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
             >
               <MessageCircle size={18} />
-              Share on WhatsApp
+              WhatsApp
             </button>
             <button 
               onClick={() => {
@@ -288,7 +326,7 @@ export default function FeeCollection() {
                 setSelectedStudent(null);
                 setSearch('');
               }}
-              className="flex items-center gap-2 px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg"
+              className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg"
             >
               New Collection
             </button>
@@ -299,23 +337,20 @@ export default function FeeCollection() {
       {/* Print Styles */}
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
-          @page { 
-            size: A4;
-            margin: 10mm;
-          }
-          #root { visibility: hidden !important; }
-          #receipt-content, #receipt-content * { visibility: visible !important; }
+          body { visibility: hidden !important; background: white !important; }
           #receipt-content { 
+            visibility: visible !important;
             display: block !important;
             position: absolute !important;
-            top: 0 !important;
             left: 0 !important;
+            top: 0 !important;
             width: 100% !important;
             height: auto !important;
-            background: white !important;
-            padding: 0 !important;
             margin: 0 !important;
+            padding: 20px !important;
+            background: white !important;
           }
+          #receipt-content * { visibility: visible !important; }
         }
       `}} />
     </div>
